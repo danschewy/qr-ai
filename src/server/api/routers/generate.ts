@@ -7,7 +7,6 @@ export const generationRouter = createTRPCRouter({
   generate: protectedProcedure
     .input(z.object({ url: z.string(), style: z.string() }))
     .mutation(async ({ input }) => {
-      console.log("hereee");
       // hit replicate api
       let image;
       try {

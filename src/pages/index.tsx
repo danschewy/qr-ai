@@ -5,6 +5,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { api } from "~/utils/api";
 import { UploadForm } from "~/components/upload-form";
 import WelcomeMessage from "~/components/welcome";
+import StripePricing from "~/components/payment";
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "guest" });
@@ -22,6 +23,12 @@ const Home: NextPage = () => {
             <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
               QR <span className="text-[hsl(280,100%,70%)]">AI</span>
             </h1>
+            <button
+              className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+              onClick={sessionData ? () => void signOut() : () => void signIn()}
+            >
+              {sessionData ? "Sign out" : "Sign in"}
+            </button>
           </div>
           <div className="flex h-full w-full grow flex-row items-center gap-2">
             <div className="h-full max-w-xs grow bg-slate-400">

@@ -1,13 +1,17 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import { useRef } from "react";
 import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-
+import StripeTable from "~/components/payment";
 export const UploadForm: React.FC = () => {
   const { mutateAsync } = api.generate.generate.useMutation({
     onSuccess: (data) => {
-      alert(data);
+      console.log("success", data);
+    },
+    onError: (error) => {
+      console.log("error", error);
     },
   });
 
@@ -32,16 +36,13 @@ export const UploadForm: React.FC = () => {
         canvasRef.current.getContext("2d")?.clearRect(0, 0, width, height);
       }
     });
+  const onSubmit = (data: { url: string; style: string }) => mutateAsync(data);
 
   return (
     <div>
       <h1>Upload Form</h1>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          handleSubmit((data) => mutateAsync(data));
-        }}
-      >
+      <StripeTable />
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <input
             type="text"
@@ -57,6 +58,7 @@ export const UploadForm: React.FC = () => {
         <div className="flex sm:flex-row">
           {styleNames.map((styleName) => (
             <label key={styleName}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`https://placekitten.com/100/100`}
                 alt={styleName}

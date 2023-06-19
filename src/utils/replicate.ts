@@ -25,7 +25,6 @@ export const replicate = process.env.REPLICATE_API_TOKEN
   : undefined;
 
 export const createGeneration = async () => {
-  console.log("generating");
   debugger;
   return await replicate?.run(model, {
     input: {
