@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { createGeneration } from "~/utils/replicate";
-import QRCode from "qrcode";
 export const generationRouter = createTRPCRouter({
   generate: protectedProcedure
     .input(
@@ -12,7 +11,7 @@ export const generationRouter = createTRPCRouter({
         image: z.optional(z.string()),
       })
     )
-    .mutation(async ({ input: { style, image, url } }) => {
+    .mutation(async ({ input: { style, image } }) => {
       // hit replicate api
       let resultImage;
       try {

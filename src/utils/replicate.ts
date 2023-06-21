@@ -23,8 +23,6 @@ export const replicate = new Replicate({
   auth: "r8_21OwUiCSDLs7cEtGZOugzZJbSOGWjv60mdLtJ",
 });
 
-const image = "https://i.ibb.co/c3F6hZf/download-1.png";
-
 export const createGeneration = async (style: string, image: string) => {
   return await replicate
     ?.run(model, {

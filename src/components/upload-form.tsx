@@ -1,10 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import { useRef, useState } from "react";
-import QRCode, { toBuffer } from "qrcode";
+import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-import { UploadButton, useUploadThing } from "~/utils/uploadthing";
+import { UploadButton } from "~/utils/uploadthing";
 import { useSession } from "next-auth/react";
 
 export const UploadForm = () => {
@@ -19,7 +20,6 @@ export const UploadForm = () => {
 
   const [isUrl, setIsUrl] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const resultRef = useRef<HTMLImageElement>(null);
 
   if (status === "loading") return "Loading...";
 

@@ -5,7 +5,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { getServerSession } from "next-auth/next";
-import { type Session } from "next-auth";
 import { type NextAuthOptions } from "next-auth";
 
 /**
