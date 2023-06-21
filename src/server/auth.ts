@@ -6,7 +6,7 @@ import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { getServerSession } from "next-auth/next";
 import { type Session } from "next-auth";
-import { NextAuthOptions } from "next-auth";
+import { type NextAuthOptions } from "next-auth";
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -15,16 +15,9 @@ import { NextAuthOptions } from "next-auth";
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session({
-      session,
-      user,
-    }: {
-      session: Session & { user: { id?: string } };
-      user: Partial<{ id?: string }>;
-    }) {
+    session({ session }) {
       if (session.user) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        session.user.id = user.id;
         // session.user.role = user.role; <-- put other properties on the session here
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
