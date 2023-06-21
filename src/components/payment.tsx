@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 
 function StripePricing() {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession({ required: true });
   const email = sessionData?.user?.email;
 
   useEffect(() => {
@@ -16,6 +16,7 @@ function StripePricing() {
     };
   }, []);
 
+  if (status === "loading") return "Loading...";
   if (!email) return null;
 
   return (

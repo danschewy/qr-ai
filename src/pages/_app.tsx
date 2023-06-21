@@ -15,7 +15,7 @@ const MyApp: AppType<{ session: Session }> = ({
   const router = useRouter();
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={{ ...session, expires: "" }}>
       <Component {...pageProps} />
     </SessionProvider>
   );

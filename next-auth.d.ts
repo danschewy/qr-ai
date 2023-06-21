@@ -1,13 +1,13 @@
-import NextAuth from "next-auth"
+import NextAuth from "next-auth";
 
 declare module "next-auth" {
   interface User {
-    name: string
+    name: string;
   }
 
   interface Session {
     user: {
-      name: string
-    }
+      name: string;
+    };
   }
 }

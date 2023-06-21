@@ -1,34 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { type GetServerSidePropsContext } from "next";
-import {
-  getServerSession,
-  type NextAuthOptions,
-  type DefaultSession,
-} from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
-
-/**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
- */
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      email: string;
-      // role: UserRole;
-    } & DefaultSession["user"];
-  }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
-}
+import { getServerSession } from "next-auth/next";
+import { type Session } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -37,11 +15,19 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session({ session, user }) {
+    session({
+      session,
+      user,
+    }: {
+      session: Session & { user: { id?: string } };
+      user: Partial<{ id?: string }>;
+    }) {
       if (session.user) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         session.user.id = user.id;
         // session.user.role = user.role; <-- put other properties on the session here
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return session;
     },
   },
@@ -72,5 +58,6 @@ export const getServerAuthSession = (ctx: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return getServerSession(ctx.req, ctx.res, authOptions);
 };

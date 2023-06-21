@@ -5,8 +5,10 @@ import { useRef, useState } from "react";
 import QRCode, { toBuffer } from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
 import { UploadButton, useUploadThing } from "~/utils/uploadthing";
+import { useSession } from "next-auth/react";
 
 export const UploadForm = () => {
+  const { status } = useSession({ required: true });
   const { mutateAsync } = api.generate.generate.useMutation();
 
   const { register, handleSubmit, watch, setValue } = useForm<{
@@ -18,7 +20,8 @@ export const UploadForm = () => {
   const [isUrl, setIsUrl] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resultRef = useRef<HTMLImageElement>(null);
-  // With promises
+
+  if (status === "loading") return "Loading...";
 
   const styleNames = stylePrompts.map((prompt) => prompt.name);
 
