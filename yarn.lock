@@ -3155,6 +3155,11 @@ regexp.prototype.flags@^1.4.3:
     define-properties "^1.2.0"
     functions-have-names "^1.2.3"
 
+replicate-api@^0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/replicate-api/-/replicate-api-0.4.4.tgz#173bfe43bef754c47326cd0116816e630a13ce16"
+  integrity sha512-Gc0hZQb++d71+9adZI0D8sgswyiFl3R0IWUWfmq8p5oeF9Nju5kOWnJ40//ZwT2L94luRYM0BSDExXCk2EGR6g==
+
 replicate@^0.12.3:
   version "0.12.3"
   resolved "https://registry.yarnpkg.com/replicate/-/replicate-0.12.3.tgz#f5f1559b0bf0381c224a86b89e1d32f4a28b5fb7"

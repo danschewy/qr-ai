@@ -4,16 +4,9 @@ import { useForm } from "react-hook-form";
 import { useRef } from "react";
 import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-import StripeTable from "~/components/payment";
-export const UploadForm: React.FC = () => {
-  const { mutateAsync } = api.generate.generate.useMutation({
-    onSuccess: (data) => {
-      console.log("success", data);
-    },
-    onError: (error) => {
-      console.log("error", error);
-    },
-  });
+
+export const UploadForm = () => {
+  const { mutateAsync } = api.generate.generate.useMutation();
 
   const { register, handleSubmit, watch } = useForm<{
     url: string;
@@ -41,7 +34,6 @@ export const UploadForm: React.FC = () => {
   return (
     <div>
       <h1>Upload Form</h1>
-      <StripeTable />
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <input

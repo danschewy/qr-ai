@@ -4,12 +4,24 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
 import { UploadForm } from "~/components/upload-form";
-import WelcomeMessage from "~/components/welcome";
+import { AuthShowcase } from "~/components/auth";
 import StripePricing from "~/components/payment";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "guest" });
   const { data: sessionData } = useSession();
+  const { data: isSubscribed } = api.subscription.getIsSubscribed.useQuery({
+    email: sessionData?.user?.email ?? "",
+  });
+
+  const view = sessionData?.user ? (
+    isSubscribed ? (
+      <UploadForm />
+    ) : (
+      <StripePricing />
+    )
+  ) : (
+    <AuthShowcase />
+  );
   return (
     <>
       <Head>
@@ -30,16 +42,8 @@ const Home: NextPage = () => {
               {sessionData ? "Sign out" : "Sign in"}
             </button>
           </div>
-          <div className="flex h-full w-full grow flex-row items-center gap-2">
-            <div className="h-full max-w-xs grow bg-slate-400">
-              <p className="text-2xl text-white">
-                {hello.data ? hello.data.greeting : "Loading..."}
-              </p>
-              <WelcomeMessage />
-            </div>
-            <div className="h-full w-full bg-green-200">
-              {sessionData ? <UploadForm /> : <AuthShowcase />}
-            </div>
+          <div className="flex h-full w-full grow flex-row items-center justify-center gap-2">
+            {view}
           </div>
         </div>
       </main>
@@ -48,24 +52,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
-const AuthShowcase: React.FC = () => {
-  const { data: sessionData } = useSession();
-  //this is going to be hidden, auth-ed only box to use for the QR code
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p>{!sessionData ? "Sign in to access your free generations" : ""}</p>
-      <button
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
-      >
-        {sessionData ? "Sign out" : "Sign in"}
-      </button>
-    </div>
-  );
-};

@@ -5,8 +5,9 @@ const model =
 
 export const stylePrompts = [
   {
-    name: "Abstract",
-    prompt: "A painting of an abstract landscape",
+    name: "Mechanical Girl",
+    prompt:
+      "qr code,1mechanical girl,ultra realistic details, portrait, global illumination, shadows, octane render, 8k, ultra sharp,intricate, ornaments detailed, cold colors, metal, egypician detail, highly intricate details, realistic light, trending on cgsociety, glowing eyes, facing camera, neon details, machanical limbs,blood vessels connected to tubes,mechanical vertebra attaching to back,mechanical cervial attaching to neck,sitting,wires and cables connecting to head",
   },
   {
     name: "Cubism",
@@ -14,23 +15,27 @@ export const stylePrompts = [
   },
   {
     name: "Japanese Castle",
-    prompt: "A painting of a Japanese castle",
+    prompt: "Japanese castle in Winter",
   },
 ];
 
-export const replicate = process.env.REPLICATE_API_TOKEN
-  ? new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN,
-    })
-  : undefined;
+export const replicate = new Replicate({
+  auth: "r8_21OwUiCSDLs7cEtGZOugzZJbSOGWjv60mdLtJ",
+});
 
 export const createGeneration = async () => {
-  debugger;
-  return await replicate?.run(model, {
-    input: {
-      prompt: stylePrompts[2]?.prompt,
-    },
-  });
+  return await replicate
+    ?.run(model, {
+      input: {
+        prompt: "Japanese castle in Winter",
+        negative_prompt: "ugly, disfigured, low quality, blurry",
+        normal_image:
+          "https://i0.wp.com/stable-diffusion-art.com/wp-content/uploads/2023/06/image-48.png?w=1398&ssl=1",
+        qr_image:
+          "https://i0.wp.com/stable-diffusion-art.com/wp-content/uploads/2023/06/image-48.png?w=1398&ssl=1",
+      },
+    })
+    .catch((e) => console.error("repliicc", e));
 };
 /**
    * {

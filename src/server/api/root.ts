@@ -1,6 +1,7 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { exampleRouter } from "~/server/api/routers/example";
 import { generationRouter } from "./routers/generate";
+import { subscriptionRouter } from "./routers/subscription";
 
 /**
  * This is the primary router for your server.
@@ -9,6 +10,7 @@ import { generationRouter } from "./routers/generate";
  */
 export const appRouter = createTRPCRouter({
   example: exampleRouter,
+  subscription: subscriptionRouter,
   generate: generationRouter,
 });
 
