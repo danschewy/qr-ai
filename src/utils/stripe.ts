@@ -11,7 +11,6 @@ export const isUserSubscribed = async (email: string) => {
   const customer = await stripe.customers.list({
     email,
   });
-  console.dir(customer);
   if (customer.data.length === 0) {
     return false;
   }
