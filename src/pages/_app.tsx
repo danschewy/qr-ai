@@ -10,8 +10,11 @@ const MyApp: AppType<{ session: Session }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
+  const oneDayFromNow = new Date(
+    Date.now() + 1000 * 60 * 60 * 24
+  ).toISOString();
   return (
-    <SessionProvider session={{ ...session, expires: "" }}>
+    <SessionProvider session={{ ...session, expires: oneDayFromNow }}>
       <Component {...pageProps} />
     </SessionProvider>
   );

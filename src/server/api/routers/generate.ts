@@ -22,7 +22,6 @@ export const generationRouter = createTRPCRouter({
         };
       }
       //return image
-      console.dir(resultImage);
       return {
         url: resultImage,
       };

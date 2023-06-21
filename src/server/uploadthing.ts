@@ -12,10 +12,8 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req, res }) => {
       const session = (await getServerAuthSession({ req, res })) as Session;
-      console.dir(session);
       // If you throw, the user will not be able to upload
       if (!session.user) throw new Error("Unauthorized");
-
       return {};
     })
     .onUploadComplete(({ file }) => {
