@@ -23,16 +23,16 @@ export const replicate = new Replicate({
   auth: "r8_21OwUiCSDLs7cEtGZOugzZJbSOGWjv60mdLtJ",
 });
 
-export const createGeneration = async () => {
+const image = "https://i.ibb.co/c3F6hZf/download-1.png";
+
+export const createGeneration = async (style: string, image: string) => {
   return await replicate
     ?.run(model, {
       input: {
         prompt: "Japanese castle in Winter",
         negative_prompt: "ugly, disfigured, low quality, blurry",
-        normal_image:
-          "https://i0.wp.com/stable-diffusion-art.com/wp-content/uploads/2023/06/image-48.png?w=1398&ssl=1",
-        qr_image:
-          "https://i0.wp.com/stable-diffusion-art.com/wp-content/uploads/2023/06/image-48.png?w=1398&ssl=1",
+        normal_image: image,
+        qr_image: image,
       },
     })
     .catch((e) => console.error("repliicc", e));

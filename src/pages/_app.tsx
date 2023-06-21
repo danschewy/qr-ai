@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 import "~/styles/globals.css";
+import "@uploadthing/react/styles.css";
 
 const MyApp: AppType<{ session: Session }> = ({
   Component,

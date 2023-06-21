@@ -2,15 +2,21 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { createGeneration } from "~/utils/replicate";
-
+import QRCode from "qrcode";
 export const generationRouter = createTRPCRouter({
   generate: protectedProcedure
-    .input(z.object({ url: z.string(), style: z.string() }))
-    .mutation(async ({ input }) => {
+    .input(
+      z.object({
+        url: z.optional(z.string()),
+        style: z.string(),
+        image: z.optional(z.string()),
+      })
+    )
+    .mutation(async ({ input: { style, image, url } }) => {
       // hit replicate api
-      let image;
+      let resultImage;
       try {
-        image = await createGeneration();
+        resultImage = await createGeneration(style, image ?? "");
       } catch (e) {
         return {
           error: "Something went wrong",
@@ -18,11 +24,7 @@ export const generationRouter = createTRPCRouter({
       }
       //return image
       return {
-        url: image,
+        url: resultImage,
       };
     }),
-
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
-  }),
 });
