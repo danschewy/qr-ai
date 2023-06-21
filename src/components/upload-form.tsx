@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useRef, useState } from "react";
 import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-import { UploadButton, useUploadThing } from "~/utils/uploadthing";
+import { UploadButton } from "~/utils/uploadthing";
 import { useSession } from "next-auth/react";
 
 export const UploadForm = () => {
@@ -18,19 +18,13 @@ export const UploadForm = () => {
     style: string;
   }>({
     defaultValues: {
-      style: stylePrompts[0].name,
+      style: stylePrompts[0]?.name,
     },
   });
 
   const [isUrl, setIsUrl] = useState(true);
   const [resultImages, setResultImages] = useState<string[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const { startUpload } = useUploadThing("imageUploader", {
-    onClientUploadComplete: (file) => {
-      setValue("image", file[0].fileUrl);
-    },
-  });
 
   if (status === "loading") return "Loading...";
 
@@ -58,7 +52,7 @@ export const UploadForm = () => {
     image: string;
   }) => {
     try {
-      await mutateAsync(data).then((res) => {
+      return await mutateAsync(data).then((res) => {
         setResultImages(res.url);
       });
     } catch (error) {

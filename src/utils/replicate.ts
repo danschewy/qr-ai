@@ -47,7 +47,8 @@ export const createGeneration = async (style: string, image: string) => {
         num_outputs: 3,
       },
     })
-    .catch((e) => console.error("repliicc", e));
+    .then((res) => res)
+    .catch((_) => null);
 };
 /**
    * {
