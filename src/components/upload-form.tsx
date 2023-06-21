@@ -53,7 +53,7 @@ export const UploadForm = () => {
   }) => {
     try {
       return await mutateAsync(data).then((res) => {
-        setResultImages(res.url);
+        setResultImages(res.url as string[]);
       });
     } catch (error) {
       alert(error);
