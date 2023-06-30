@@ -5,8 +5,12 @@ import { useForm } from "react-hook-form";
 import { useRef, useState } from "react";
 import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-import { UploadButton } from "~/utils/uploadthing";
+import { UploadButton, uploadFiles } from "~/utils/uploadthing";
 import { useSession } from "next-auth/react";
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
+
+const defaultSrc = "https://i.redd.it/g4ywfjkr4ct51.png";
 
 export const UploadForm = () => {
   const { status } = useSession({ required: true });
@@ -14,7 +18,7 @@ export const UploadForm = () => {
 
   const { register, handleSubmit, watch, setValue } = useForm<{
     url: string;
-    image: string;
+    image0: string;
     style: string;
   }>({
     defaultValues: {
@@ -23,6 +27,7 @@ export const UploadForm = () => {
   });
 
   const [isUrl, setIsUrl] = useState(true);
+  const [uv2, setUv2] = useState("");
   const [resultImages, setResultImages] = useState<string[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -30,6 +35,18 @@ export const UploadForm = () => {
 
   const urlValue = watch("url");
   const styleValue = watch("style");
+
+  const saveAsPNG = () => {
+    const canvas = canvasRef.current;
+
+    if (canvas) {
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = "qr_code.png";
+      link.href = dataURL;
+      link.click();
+    }
+  };
 
   const getQR = () =>
     QRCode.toCanvas(
@@ -46,21 +63,110 @@ export const UploadForm = () => {
         }
       }
     );
+  // console.log("out", QRCode.toBuffer(uv2));
+  console.log(uv2);
+  console.log("ok/");
   const onSubmit = async (data: {
     url: string;
     style: string;
-    image: string;
+    image0: string;
+    // canvasRef: string;
   }) => {
+    // Save the QR code
+    try {
+      console.log("got canv?");
+      saveAsPNG();
+      // Send to uploadthing
+      console.log(canvasRef, "nowfiles");
+      const files = [
+        new File(["qr_code.png"], "qr_code.png", {
+          type: "image/png",
+        }),
+      ];
+
+      const res = await uploadFiles({
+        files,
+        endpoint: "imageUploader",
+        // input: {'qr_code.png'}
+        // input: {}, // will be typesafe to match the input set for `imageUploader` in your FileRouter
+      });
+      console.log("hopefully uploaded?", res);
+
+      // Now send to replicate
+    } catch (error) {
+      alert(error);
+      return null;
+    }
     try {
       return await mutateAsync(data).then((res) => {
-        setResultImages(res.url as string[]);
+        // setResultImages(res.url as string[]);
+        console.log("sent");
       });
     } catch (error) {
       alert(error);
       return null;
     }
   };
-  const image = watch("image");
+  const image0 = watch("image0");
+
+  // Cropper
+  const [image, setImage] = useState(defaultSrc);
+  const [cropData, setCropData] = useState("");
+  const [cropper, setCropper] = useState(null);
+
+  const onChange = (e) => {
+    e.preventDefault();
+    let files;
+    if (e.dataTransfer) {
+      files = e.dataTransfer.files;
+    } else if (e.target) {
+      files = e.target.files;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImage(reader.result);
+    };
+    reader.readAsDataURL(files[0]);
+  };
+
+  const getCropData = () => {
+    if (typeof cropper !== "undefined" && cropper !== null) {
+      const croppedCanvas = cropper.getCroppedCanvas({
+        fillColor: "#fff",
+        imageSmoothingEnabled: false,
+        imageSmoothingQuality: "high",
+      });
+
+      const resizedCanvas = document.createElement("canvas");
+      const resizedContext = resizedCanvas.getContext("2d");
+
+      // Set the desired fixed width and height
+      const fixedWidth = 512;
+      const fixedHeight = 512;
+
+      resizedCanvas.width = fixedWidth;
+      resizedCanvas.height = fixedHeight;
+
+      // Draw the cropped image onto the resized canvas with fixed dimensions
+      resizedContext.drawImage(
+        croppedCanvas,
+        0,
+        0,
+        croppedCanvas.width,
+        croppedCanvas.height,
+        0,
+        0,
+        fixedWidth,
+        fixedHeight
+      );
+
+      setCropData(resizedCanvas.toDataURL());
+    }
+  };
+
+  const useDefaultImage = () => {
+    setImage(defaultSrc);
+  };
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-16 sm:flex-row">
@@ -118,7 +224,10 @@ export const UploadForm = () => {
                   </button>
                 </div>
                 {urlValue ? (
-                  <canvas ref={canvasRef} className="m-2 h-64 w-64" />
+                  <>
+                    {/* <h2>Click Preview to see QR code</h2> */}
+                    <canvas ref={canvasRef} className="m-2 h-64 w-64" />
+                  </>
                 ) : (
                   <div className=" p-4 text-center text-amber-500">
                     Enter a url above
@@ -132,11 +241,38 @@ export const UploadForm = () => {
                   endpoint="imageUploader"
                   onClientUploadComplete={(res) => {
                     setValue("url", "");
-                    setValue("image", res?.[0]?.fileUrl ?? "");
+                    setValue("image0", res?.[0]?.fileUrl ?? "");
                   }}
                 />
               </div>
             )}
+            <h3>Select image for cropper</h3>
+            <input type="file" onChange={onChange} />
+            &nbsp; &nbsp;
+            <div className="flex items-center justify-center rounded-lg bg-gray-400 p-2 font-semibold text-gray-300 hover:bg-gray-500">
+              <button type="button" onClick={getCropData}>
+                Crop Image
+              </button>
+            </div>
+            <Cropper
+              className="cropper"
+              zoomTo={0.2}
+              initialAspectRatio={1}
+              aspectRatio={1}
+              src={image}
+              viewMode={0}
+              minCropBoxHeight={10}
+              minCropBoxWidth={10}
+              background={false}
+              responsive={true}
+              autoCropArea={1}
+              checkOrientation={false}
+              onInitialized={(instance) => {
+                setCropper(instance);
+              }}
+              guides={true}
+            />
+            <ImageUploadPage />
             <button
               className="my-6 sm:my-0"
               type="submit"
@@ -150,6 +286,11 @@ export const UploadForm = () => {
             </button>
           </div>
           <div>
+            {cropData ? (
+              <img style={{ height: "512px" }} src={cropData} alt="cropped" />
+            ) : (
+              <h1>Cropped image will apear here!</h1>
+            )}
             <h3 className="text-3xl font-bold text-white">Choose a style</h3>
             <div className="flex flex-wrap gap-8 p-3 sm:flex-row">
               {stylePrompts.map((style, index) => (
@@ -183,6 +324,23 @@ export const UploadForm = () => {
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+const ImageUploadPage = () => {
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedImage(URL.createObjectURL(file));
+  };
+
+  return (
+    <div>
+      <h1>Image Upload</h1>
+      <input type="file" accept="image/*" onChange={handleImageChange} />
+      {selectedImage && <img src={selectedImage} alt="Selected Image" />}
     </div>
   );
 };
