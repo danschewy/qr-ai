@@ -14,15 +14,7 @@ const Home: NextPage = () => {
     email: sessionData?.user?.email ?? "",
   });
 
-  const view = sessionData?.user ? (
-    isSubscribed ? (
-      <UploadForm />
-    ) : (
-      <StripePricing />
-    )
-  ) : (
-    <AuthShowcase />
-  );
+  const view = <UploadForm />;
   return (
     <>
       <Head>
