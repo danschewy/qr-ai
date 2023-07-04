@@ -2,37 +2,52 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { api } from "~/utils/api";
 import { Controller, useForm } from "react-hook-form";
-import { type ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { stylePrompts } from "~/utils/replicate";
-import { UploadButton, uploadFiles } from "~/utils/uploadthing";
+import { uploadFiles } from "~/utils/uploadthing";
 import { useSession } from "next-auth/react";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
-import { setPriority } from "os";
 
-const defaultSrc = "https://i.redd.it/g4ywfjkr4ct51.png";
+function srcToFile(src: RequestInfo | URL, fileName: string, mimeType: string) {
+  return fetch(src)
+    .then(function (res) {
+      return res.arrayBuffer();
+    })
+    .then(function (buf) {
+      return new File([buf], fileName, { type: mimeType });
+    });
+}
 
 export const UploadForm = () => {
   const { status } = useSession({ required: true });
-  const { mutateAsync, isLoading } = api.generate.generate.useMutation();
-
-  const { register, handleSubmit, watch, setValue } = useForm<{
+  const { mutateAsync, isLoading: isGenerating } =
+    api.generate.generate.useMutation();
+  const {
+    register,
+    formState: { errors },
+    reset,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+  } = useForm<{
     url: string;
-    image0: string;
+    qr_image: string;
     style: string;
   }>({
     defaultValues: {
       style: stylePrompts[0]?.name,
+      url: "",
     },
   });
 
+  const [rawQRImage, setRawQRImage] = useState<string>("");
   const [isUrl, setIsUrl] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [resultImages, setResultImages] = useState<string[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // Cropper
-  const [image, setImage] = useState(defaultSrc);
-  const [cropData, setCropData] = useState("");
   const [cropper, setCropper] = useState<Cropper | null>(null);
   const [urlPreview, setUrlPreview] = useState<string | null>(null);
   if (status === "loading") return "Loading...";
@@ -40,91 +55,72 @@ export const UploadForm = () => {
   const urlValue = watch("url");
   const styleValue = watch("style");
 
-  const saveAsPNG = () => {
-    const canvas = canvasRef.current;
-
-    if (canvas) {
-      const dataURL = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = "qr_code.png";
-      link.href = dataURL;
-      link.click();
-    }
-  };
-
-  const getQR = () =>
+  const getQR = (text?: string) => {
     canvasRef.current &&
-    QRCode.toDataURL(
-      canvasRef.current,
-      urlValue,
-      {
-        width: 512,
-      },
-      (error, url) => {
-        if (error) {
-          if (!canvasRef.current) return;
-          const { width, height } = canvasRef.current;
-          canvasRef.current.getContext("2d")?.clearRect(0, 0, width, height);
-        } else {
-          setUrlPreview(url);
+      QRCode.toDataURL(
+        canvasRef.current,
+        text || urlValue,
+        {
+          width: 512,
+        },
+        (error, url) => {
+          if (error) {
+            console.log("error", error, "urlValue", urlValue);
+            if (!canvasRef.current) return;
+            const { width, height } = canvasRef.current;
+            canvasRef.current.getContext("2d")?.clearRect(0, 0, width, height);
+          } else {
+            setUrlPreview(url);
+          }
         }
-      }
-    );
+      );
+  };
 
   const onSubmit = async (data: {
     url: string;
     style: string;
-    image0: string;
-    // canvasRef: string;
+    qr_image: string;
   }) => {
-    if (isUrl) {
-      // get the preview image
-    } else {
-      // get the image from the cropper
-      const croppedImage = getCropData();
-    }
-
-    // Save the QR code
+    const finalImage = isUrl ? urlPreview : getCropData();
+    let uploadedImage;
+    if (!finalImage) return;
     try {
-      saveAsPNG();
-      // Send to uploadthing
+      const fileName = crypto.randomUUID() + ".png";
       const files = [
-        new File(["qr_code.png"], "qr_code.png", {
-          type: "image/png",
-        }),
+        await srcToFile(new URL(finalImage), fileName, "image/png"),
       ];
-
+      setIsLoading(true);
       const res = await uploadFiles({
         files,
         endpoint: "imageUploader",
-        // input: {'qr_code.png'}
-        // input: {}, // will be typesafe to match the input set for `imageUploader` in your FileRouter
       });
-
-      // Now send to replicate
+      uploadedImage = res[0]?.fileUrl;
     } catch (error) {
-      alert(error);
-      return null;
+      console.error(error);
     }
     try {
-      return await mutateAsync(data).then((res) => {
-        // setResultImages(res.url as string[]);
+      return await mutateAsync({
+        url: data.url,
+        style: data.style,
+        image: uploadedImage,
+      }).then((res) => {
+        setResultImages(res.url as string[]);
+        reset();
+        setIsLoading(false);
       });
     } catch (error) {
-      alert(error);
-      return null;
+      setIsLoading(false);
     }
   };
-  const image0 = watch("image0");
 
-  const getCropData = () => {
+  const getCropData = (instance?: Cropper) => {
     if (typeof cropper !== "undefined" && cropper !== null) {
-      const croppedCanvas = cropper.getCroppedCanvas({
+      const croppedCanvas = (cropper || instance).getCroppedCanvas({
         fillColor: "#fff",
         imageSmoothingEnabled: false,
         imageSmoothingQuality: "high",
       });
-      if (croppedCanvas === null) return;
+      if (croppedCanvas === null) return "";
       const resizedCanvas = document.createElement("canvas");
       const resizedContext = resizedCanvas.getContext("2d");
 
@@ -147,19 +143,18 @@ export const UploadForm = () => {
         fixedWidth,
         fixedHeight
       );
-
-      //setCropData(resizedCanvas.toDataURL());
       return resizedCanvas.toDataURL();
     }
+    return "";
   };
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-16 sm:flex-row">
-      {isLoading ? (
+      {isLoading || isGenerating ? (
         <span className="text-white">
           Generating please be patient sometimes it takes a while...
         </span>
-      ) : !resultImages.length ? (
+      ) : !resultImages?.length ? (
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex h-full w-full flex-col items-start justify-start sm:flex-row sm:justify-evenly sm:gap-16"
@@ -193,22 +188,35 @@ export const UploadForm = () => {
                 </div>
               </button>
             </div>
+            {errors.root?.message && (
+              <div className="h-7 bg-orange-400">{errors.root?.message}</div>
+            )}
+
             {isUrl ? (
               <div className="mt-8 flex w-full flex-col items-center justify-center">
                 <div className="flex w-full flex-row gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter your URL"
-                    className="h-10 w-full rounded-md p-2"
-                    {...register("url")}
+                  <Controller
+                    control={control}
+                    name="url"
+                    rules={{ required: true, minLength: 4 }}
+                    render={({ field: { onChange } }) => (
+                      <input
+                        type="text"
+                        placeholder="Enter your URL"
+                        className="h-10 w-full rounded-md p-2"
+                        onInput={(event: FormEvent<HTMLInputElement>) => {
+                          onChange(event.currentTarget?.value);
+                          getQR(event.currentTarget?.value || "");
+                        }}
+                        {...register("url", {
+                          required: "This is required.",
+                        })}
+                      />
+                    )}
                   />
-                  <button onClick={getQR} type="button">
-                    <div className="flex items-center justify-center rounded-lg bg-gray-400 p-2 font-semibold text-gray-300 hover:bg-gray-500">
-                      Preview
-                    </div>
-                  </button>
                 </div>
-                {urlValue ? (
+                <canvas ref={canvasRef} className="hidden" />
+                {urlPreview ? (
                   <>
                     {/* <h2>Click Preview to see QR code</h2> */}
                     <img
@@ -216,7 +224,6 @@ export const UploadForm = () => {
                       className="mt-2"
                       alt="QR code"
                     />
-                    <canvas ref={canvasRef} className="hidden" />
                   </>
                 ) : (
                   <div className=" p-4 text-center text-amber-500">
@@ -226,46 +233,52 @@ export const UploadForm = () => {
               </div>
             ) : (
               <div className="mt-8 flex flex-col items-center justify-center gap-6">
-                <input
-                  title="Upload an image"
-                  type="file"
-                  accept="image/*"
-                  className="h-full w-full cursor-pointer rounded-md bg-gray-400 bg-opacity-60"
-                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setValue(
-                      "image0",
-                      URL.createObjectURL(event.target?.files?.item(0) as File)
-                    )
-                  }
+                <Controller
+                  name="qr_image"
+                  control={control}
+                  render={({ field: { onChange } }) => (
+                    <>
+                      <input
+                        title="Upload an image"
+                        type="file"
+                        accept="image/*"
+                        className="h-full w-full cursor-pointer rounded-md bg-gray-400 bg-opacity-60"
+                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                          setRawQRImage(
+                            URL.createObjectURL(
+                              event.target?.files?.item(0) as File
+                            )
+                          )
+                        }
+                      />
+                      {rawQRImage ? (
+                        <Cropper
+                          className="cropper"
+                          initialAspectRatio={1}
+                          aspectRatio={1}
+                          src={rawQRImage}
+                          viewMode={0}
+                          style={{ height: 300, width: 300 }}
+                          minCropBoxHeight={10}
+                          minCropBoxWidth={10}
+                          background={false}
+                          responsive={false}
+                          autoCropArea={1}
+                          checkOrientation={false}
+                          onInitialized={(instance) => {
+                            setCropper(instance);
+                            onChange(getCropData(instance));
+                          }}
+                          guides={true}
+                        />
+                      ) : null}
+                    </>
+                  )}
                 />
-                {image0 ? (
-                  <Cropper
-                    className="cropper"
-                    initialAspectRatio={1}
-                    aspectRatio={1}
-                    src={image0}
-                    viewMode={0}
-                    style={{ height: 300, width: 300 }}
-                    minCropBoxHeight={10}
-                    minCropBoxWidth={10}
-                    background={false}
-                    responsive={false}
-                    autoCropArea={1}
-                    checkOrientation={false}
-                    onInitialized={(instance) => {
-                      setCropper(instance);
-                    }}
-                    guides={true}
-                  />
-                ) : null}
               </div>
             )}
 
-            <button
-              className="my-6 sm:my-0"
-              type="submit"
-              onClick={() => setIsUrl(false)}
-            >
+            <button className="my-6 sm:my-0" type="submit">
               <div
                 className={`mt-8 flex h-10 w-full items-center justify-center rounded-lg hover:bg-green-300 ${"bg-green-600 text-white"}`}
               >

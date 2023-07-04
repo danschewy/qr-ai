@@ -1,13 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* 
+
 .App {
   font-family: sans-serif;
   text-align: center;
 }
 
-@import url("https://fonts.googleapis.com/css?family=Acme|Lobster"); */
+@import url("https://fonts.googleapis.com/css?family=Acme|Lobster");
+*/
 
 /* This allow me to have the full width of the page without the initial padding/margin*/
 body,
@@ -23,30 +24,6 @@ html {
 .splitdiv {
   height: 100%;
   width: 50%;
-}
-
-/* This part contains all of the left side of the screen */
-/* ----------------------------------------- */
-#leftdiv {
-  float: left;
-  background-color: #fafafa;
-  height: 932px;
-}
-
-#leftdivcard {
-  margin: 0 auto;
-  width: 80%;
-  background-color: white;
-  margin-top: 35vh;
-  transform: translateY(-50%);
-  box-shadow: 10px 10px 1px 0px rgba(78, 205, 196, 0.2);
-  border-radius: 10px;
-}
-
-#leftbutton {
-  background-color: #512cf3;
-  border-radius: 5px;
-  color: #fafafa;
 }
 
 .cropper {
@@ -94,7 +71,7 @@ button {
 }
 
 h1 {
-  font-family: Lobster;
+  /* font-family: Lobster; */
   color: #512cf3;
   text-align: center;
   font-size: 40px;

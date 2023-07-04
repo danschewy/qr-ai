@@ -14,7 +14,13 @@ const Home: NextPage = () => {
     email: sessionData?.user?.email ?? "",
   });
 
-  const view = <UploadForm />;
+  const view = isSubscribed ? (
+    <UploadForm />
+  ) : sessionData ? (
+    <StripePricing />
+  ) : (
+    <AuthShowcase />
+  );
   return (
     <>
       <Head>
@@ -25,7 +31,10 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div className="flex h-full flex-col gap-12 px-4 py-6 sm:p-6">
           <div className="flex flex-row justify-between">
-            <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+            <h1
+              onClick={() => window.location.reload()}
+              className="cursor-pointer text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]"
+            >
               QR <span className="text-[hsl(280,100%,70%)]">AI</span>
             </h1>
             <button
