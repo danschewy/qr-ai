@@ -3,24 +3,13 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-import { api } from "~/utils/api";
 import { UploadForm } from "~/components/upload-form";
 import { AuthShowcase } from "~/components/auth";
-import StripePricing from "~/components/payment";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
-  const { data: isSubscribed } = api.subscription.getIsSubscribed.useQuery({
-    email: sessionData?.user?.email ?? "",
-  });
 
-  const view = isSubscribed ? (
-    <UploadForm />
-  ) : sessionData ? (
-    <StripePricing />
-  ) : (
-    <AuthShowcase />
-  );
+  const view = sessionData?.user?.id ? <UploadForm /> : <AuthShowcase />;
   return (
     <>
       <Head>
