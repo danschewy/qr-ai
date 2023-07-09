@@ -36,7 +36,11 @@ const Home: NextPage = () => {
             </h1>
             <button
               className="flex flex-row items-center justify-center gap-4 rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-              onClick={sessionData ? () => void signOut() : () => void signIn()}
+              onClick={
+                sessionData
+                  ? () => void signOut({ callbackUrl: "/api/auth/logout" })
+                  : () => void signIn()
+              }
             >
               {sessionData?.user?.image && (
                 <img

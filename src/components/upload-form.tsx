@@ -25,9 +25,7 @@ export const UploadForm = () => {
   const {
     mutateAsync,
     isLoading: isGenerating,
-    isIdle,
     isError,
-    isSuccess,
   } = api.generate.generate.useMutation();
   const {
     register,
@@ -155,13 +153,19 @@ export const UploadForm = () => {
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-16 sm:flex-row">
-      {isLoading || isGenerating || isIdle ? (
+      {resultImages?.length ? (
+        <div className="flex flex-wrap gap-4">
+          {resultImages.map((url, index) => (
+            <img src={url} alt="image" key={index} />
+          ))}
+        </div>
+      ) : isLoading || isGenerating ? (
         <span className="text-white">
           Generating please be patient sometimes it takes a while...
         </span>
       ) : isError ? (
-        <h1 className="font-4xl">Whoops error</h1>
-      ) : !resultImages?.length ? (
+        <span className="text-white">Whoops error</span>
+      ) : (
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex h-full w-full flex-col items-start justify-start sm:flex-row sm:justify-evenly sm:gap-16"
@@ -320,12 +324,6 @@ export const UploadForm = () => {
             </div>
           </div>
         </form>
-      ) : (
-        <div className="flex flex-wrap gap-4">
-          {resultImages.map((url, index) => (
-            <img src={url} alt="image" key={index} />
-          ))}
-        </div>
       )}
     </div>
   );
