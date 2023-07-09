@@ -40,6 +40,7 @@ const Home: NextPage = () => {
                 sessionData
                   ? () => {
                       void signOut();
+                      window.close();
                     }
                   : () => void signIn()
               }
