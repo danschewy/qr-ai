@@ -9,7 +9,7 @@ import { AuthShowcase } from "~/components/auth";
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
 
-  const view = sessionData?.user?.id ? <UploadForm /> : <AuthShowcase />;
+  const view = sessionData ? <UploadForm /> : <AuthShowcase />;
   return (
     <>
       <Head>
