@@ -22,8 +22,13 @@ function srcToFile(src: RequestInfo | URL, fileName: string, mimeType: string) {
 
 export const UploadForm = () => {
   const { status } = useSession({ required: true });
-  const { mutateAsync, isLoading: isGenerating } =
-    api.generate.generate.useMutation();
+  const {
+    mutateAsync,
+    isLoading: isGenerating,
+    isIdle,
+    isError,
+    isSuccess,
+  } = api.generate.generate.useMutation();
   const {
     register,
     formState: { errors },
@@ -150,10 +155,12 @@ export const UploadForm = () => {
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-16 sm:flex-row">
-      {isLoading || isGenerating ? (
+      {isLoading || isGenerating || isIdle ? (
         <span className="text-white">
           Generating please be patient sometimes it takes a while...
         </span>
+      ) : isError ? (
+        <h1 className="font-4xl">Whoops error</h1>
       ) : !resultImages?.length ? (
         <form
           onSubmit={handleSubmit(onSubmit)}
