@@ -7,7 +7,7 @@ import { UploadForm } from "~/components/upload-form";
 import { AuthShowcase } from "~/components/auth";
 
 const Home: NextPage = () => {
-  const { status, update, data: sessionData } = useSession();
+  const { status, data: sessionData } = useSession();
 
   const view =
     status === "authenticated" ? (
@@ -17,6 +17,7 @@ const Home: NextPage = () => {
     ) : (
       <AuthShowcase />
     );
+
   return (
     <>
       <Head>
@@ -35,14 +36,7 @@ const Home: NextPage = () => {
             </h1>
             <button
               className="flex flex-row items-center justify-center gap-4 rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-              onClick={
-                sessionData
-                  ? () => {
-                      void signOut();
-                      void update();
-                    }
-                  : () => void signIn()
-              }
+              onClick={sessionData ? () => void signOut() : () => void signIn()}
             >
               {sessionData?.user?.image && (
                 <img
