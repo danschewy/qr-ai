@@ -47,8 +47,7 @@ export const createGeneration = async (style: string, image: string) => {
         num_outputs: 3,
       },
     })
-    .then((res) => res)
-    .catch((_) => null);
+    .then((res) => res);
 };
 /**
    * {

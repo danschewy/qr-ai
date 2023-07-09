@@ -15,7 +15,8 @@ export const generationRouter = createTRPCRouter({
       // hit replicate api
       let resultImage;
       try {
-        resultImage = await createGeneration(style, image ?? "");
+        if (!image) throw new Error("No image provided");
+        resultImage = await createGeneration(style, image);
       } catch (e) {
         return {
           error: "Something went wrong",
