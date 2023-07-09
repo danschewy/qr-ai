@@ -5,26 +5,15 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { UploadForm } from "~/components/upload-form";
 import { AuthShowcase } from "~/components/auth";
-import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
   const { status, data: sessionData } = useSession();
 
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  if (isSigningOut) {
-    return (
-      <div>
-        <h1>Signing out...</h1>
-      </div>
-    );
-  }
-
   const view =
-    status === "authenticated" ? (
-      <UploadForm />
-    ) : status === "loading" ? (
+    status === "loading" ? (
       "Loading"
+    ) : status === "authenticated" ? (
+      <UploadForm />
     ) : (
       <AuthShowcase />
     );
@@ -50,7 +39,7 @@ const Home: NextPage = () => {
               onClick={
                 sessionData
                   ? () => {
-                      void signOut(), setIsSigningOut(true);
+                      void signOut();
                     }
                   : () => void signIn()
               }
