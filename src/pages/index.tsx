@@ -5,6 +5,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { UploadForm } from "~/components/upload-form";
 import { AuthShowcase } from "~/components/auth";
+import { useEffect } from "react";
 
 const Home: NextPage = () => {
   const { status, data: sessionData } = useSession();
@@ -17,6 +18,8 @@ const Home: NextPage = () => {
     ) : (
       <AuthShowcase />
     );
+
+  useEffect(() => void 1, [sessionData]);
 
   return (
     <>
@@ -36,14 +39,7 @@ const Home: NextPage = () => {
             </h1>
             <button
               className="flex flex-row items-center justify-center gap-4 rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-              onClick={
-                sessionData
-                  ? () => {
-                      void signOut();
-                      window.close();
-                    }
-                  : () => void signIn()
-              }
+              onClick={sessionData ? () => void signOut() : () => void signIn()}
             >
               {sessionData?.user?.image && (
                 <img
